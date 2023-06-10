@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Graduate School Class Record</title>
+  <link rel="stylesheet" href="bootstrap/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.1.3/css/bootstrap.min.css">
+</head>
+<body>
+  <div class="container mt-5">
+    <h1>Graduate School Class Record</h1>
+    <form id="calculatorForm" class="mt-4">
+      <div class="mb-3">
+        <label for="fullName" class="form-label">Full Name:</label>
+        <input type="text" id="fullName" class="form-control" required>
+      </div>
+      <div class="mb-3">
+        <label for="studentId" class="form-label">Student ID Number:</label>
+        <input type="text" id="studentId" class="form-control" required>
+      </div>
+      <div class="mb-3">
+        <label for="quizzes" class="form-label">Quizzes:</label>
+        <div id="quizInputs">
+          <div class="input-group">
+            <input type="number" class="form-control quizScore" min="0" step="1" required>
+            <button type="button" class="btn btn-danger removeQuiz">Remove</button>
+          </div>
+        </div>
+        <button type="button" id="addQuiz" class="btn btn-primary mt-3">Add Quiz</button>
+      </div>
+      <div class="mb-3">
+        <label for="oralRecitations" class="form-label">Oral Recitations:</label>
+        <div id="oralRecitationInputs">
+          <div class="input-group">
+            <input type="number" class="form-control oralRecitationScore" min="0" step="1" required>
+            <button type="button" class="btn btn-danger removeOralRecitation">Remove</button>
+          </div>
+        </div>
+        <button type="button" id="addOralRecitation" class="btn btn-primary mt-3">Add Oral Recitation</button>
+      </div>
+      <div class="mb-3">
+        <label for="midtermExam" class="form-label">Midterm Exam:</label>
+        <input type="number" id="midtermExam" class="form-control" min="0" step="1" required>
+      </div>
+      <div class="mb-3">
+        <label for="finalExam" class="form-label">Final Exam:</label>
+        <input type="number" id="finalExam" class="form-control" min="0" step="1" required>
+      </div>
+      <div class="mb-3">
+        <label for="research" class="form-label">Research Outputs/Paper/Presentation:</label>
+        <input type="number" id="research" class="form-control" min="0" step="1" required>
+      </div>
+      <div class="mb-3">
+        <label for="portfolio" class="form-label">Portfolio:</label>
+        <input type="number" id="portfolio" class="form-control" min="0" step="1" required>
+      </div>
+      <button type="submit" class="btn btn-success">Calculate</button>
+      <button type="button" id="exportCSV" class="btn btn-primary ms-2">Export to CSV</button>
+      <button type="button" id="exportXML" class="btn btn-primary ms-2">Export to XML</button>
+    </form>
+    <div id="result" class="mt-4"></div>
+  </div>
+  
+  <script src="bootstrap/bootstrap.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+  <script>
+    $(document).ready(function() {
+      const addQuizButton = $('#addQuiz');
+      const addOralRecitationButton = $('#addOralRecitation');
+      const resultDiv = $('#result');
+
+      let quizCount = 1;
+      let oralRecitationCount = 1;
+      let studentData = [];
+
+      addQuizButton.on('click', function() {
+        const quizInputs = $('#quizInputs');
+        const newQuizInput = `
+          <div class="input-group">
+            <input type="number" class="form-control quizScore" min="0" step="1" required>
+            <button type="button" class="btn btn-danger removeQuiz">Remove</button>
+          </div>
+        `;
+        quizInputs.append(newQuizInput);
+        quizCount++;
+      });
+
+      $(document).on('click', '.removeQuiz', function() {
+        $(this).closest('.input-group').remove();
+        quizCount--;
+      });
+
+      addOralRecitationButton.on('click', function() {
+        const oralRecitationInputs = $('#oralRecitationInputs');
+        const newOralRecitationInput = `
+          <div class="input-group">
+            <input type="number" class="form-control oralRecitationScore" min="0" step="1" required>
+            <button type="button" class="btn btn-danger removeOralRecitation">Remove</button>
+          </div>
+        `;
+        oralRecitationInputs.append(newOralRecitationInput);
+        oralRecitationCount++;
+      });
+
+      $(document).on('click', '.removeOralRecitation', function() {
+        $(this).closest('.input-group').remove();
+        oralRecitationCount--;
+      });
+
+      $('#calculatorForm').submit(function(e) {
+        e.preventDefault();
+
+        const fullName = $('#fullName').val();
+        const studentId = $('#studentId').val();
+
+        const quizScores = $('.quizScore');
+        let totalQuizzes = 0;
+        for (let i = 0; i < quizScores.length; i++) {
+          totalQuizzes += parseInt($(quizScores[i]).val());
+        }
+        const totalQuizzesWeight = Math.min(totalQuizzes * 0.2, 20);
+
+        const oralRecitationScores = $('.oralRecitationScore');
+        let totalOralRecitations = 0;
+        for (let i = 0; i < oralRecitationScores.length; i++) {
+          totalOralRecitations += parseInt($(oralRecitationScores[i]).val());
+        }
+        const totalOralRecitationsWeight = Math.min(totalOralRecitations * 0.2, 20);
+
+        const midtermExam = parseInt($('#midtermExam').val());
+        const totalMidtermExam = Math.min(midtermExam * 0.1, 10);
+
+        const finalExam = parseInt($('#finalExam').val());
+        const totalFinalExam = Math.min(finalExam * 0.1, 10);
+
+        const research = parseInt($('#research').val());
+        const totalResearch = Math.min(research * 0.3, 30);
+
+        const portfolio = parseInt($('#portfolio').val());
+        const totalPortfolio = Math.min(portfolio * 0.1, 10);
+
+        const totalScore = totalQuizzesWeight + totalOralRecitationsWeight + totalMidtermExam + totalFinalExam + totalResearch + totalPortfolio;
+
+        const studentRecord = {
+          fullName: fullName,
+          studentId: studentId,
+          totalScore: Math.min(totalScore, 100).toFixed(2)
+        };
+
+        studentData.push(studentRecord);
+
+        resultDiv.text(`Total Score: ${studentRecord.totalScore}%`);
+
+        $('#fullName').val('');
+        $('#studentId').val('');
+        $('.quizScore').val('');
+        $('.oralRecitationScore').val('');
+        $('#midtermExam').val('');
+        $('#finalExam').val('');
+        $('#research').val('');
+        $('#portfolio').val('');
+      });
+
+      $('#exportCSV').on('click', function() {
+        const csvContent = "data:text/csv;charset=utf-8," + studentData.map(e => Object.values(e).join(",")).join("\n");
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "student_records.csv");
+        document.body.appendChild(link);
+        link.click();
+      });
+
+      $('#exportXML').on('click', function() {
+        const xmlContent = '<?xml version="1.0" encoding="UTF-8"?><students>' +
+          studentData.map(e => `<student><fullName>${e.fullName}</fullName><studentId>${e.studentId}</studentId><totalScore>${e.totalScore}</totalScore></student>`).join("") +
+          '</students>';
+        const encodedUri = encodeURI('data:text/xml;charset=utf-8,' + xmlContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "student_records.xml");
+        document.body.appendChild(link);
+        link.click();
+      });
+    });
+  </script>
+</body>
+</html>
